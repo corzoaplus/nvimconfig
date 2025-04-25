@@ -23,7 +23,7 @@ return {
 		ignore = true,
 	},
 	filesystem_watchers = {
-		enable = true,
+		enable = false,
 	},
 	actions = {
 		open_file = {

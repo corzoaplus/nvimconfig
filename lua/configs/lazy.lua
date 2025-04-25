@@ -26,30 +26,10 @@ return {
 				"javascript",
 				"typescript",
 				"tsx",
-				"rust",
-				"svelte",
 				"python",
-				"yaml",
 			}
-
-			-- Unix-only languages
-			local unix_languages = { "c", "cpp", "zig" }
-
-			-- Combine languages based on platform
-			local ensure_installed = base_languages
-			if vim.fn.has("unix") == 1 then
-				vim.list_extend(ensure_installed, unix_languages)
-			end
-
-			configs.setup({
-				ensure_installed = ensure_installed,
-				sync_install = false,
-				highlight = { enable = true },
-				indent = { enable = true },
-			})
 		end,
 	},
-
 	{
 		"williamboman/mason.nvim",
 		cmd = { "Mason", "MasonInstall", "MasonInstallAll", "MasonUpdate", "MasonUninstallAll" },
@@ -78,21 +58,22 @@ return {
 		end,
 	},
 	{
+		"nvim-tree/nvim-web-devicons",
+		lazy = true,
+	},
+	{
 		"nvim-tree/nvim-tree.lua",
 		version = "*",
 		lazy = false,
-		dependencies = {
-			"nvim-tree/nvim-web-devicons",
-		},
 		opts = function()
 			return require("configs.nvimtree")
 		end,
-		config = function(_, opts)
+		--[[ config = function(_, opts)
 			require("nvim-tree").setup(opts)
-		end,
+		end, ]]
 	},
 	{
-		-- Thank you to Josean for his video https://youtu.be/NL8D8EkphUw?si=3ZAt7ZJ0S1HuDJ_M
+
 		"hrsh7th/nvim-cmp",
 		event = "InsertEnter",
 		dependencies = {
@@ -103,39 +84,8 @@ return {
 			"saadparwaiz1/cmp_luasnip",
 			"rafamadriz/friendly-snippets",
 		},
-		opts = function()
-			return require("configs.nvim-cmp")
-		end,
 		config = function()
-			local cmp = require("cmp")
-			local luasnip = require("luasnip")
-			require("luasnip.loaders.from_vscode").lazy_load()
-
-			cmp.setup({
-				completion = {
-					completeopt = "menu,menuone,preview,noselect",
-				},
-				snippet = { -- configure how nvim-mp interacts with snippet engine
-					expand = function(args)
-						luasnip.lsp_expand(args.body)
-					end,
-				},
-				mapping = cmp.mapping.preset.insert({
-					["<C-k>"] = cmp.mapping.select_prev_item(), --previous suggestion
-					["<C-j>"] = cmp.mapping.select_next_item(), -- next suggestion
-					["<C-b>"] = cmp.mapping.scroll_docs(-4),
-					["<C-f>"] = cmp.mapping.scroll_docs(4),
-					--["<C-Space>"] = cmp.mapping.complete(), -- show completion suggestions
-					["<C-e>"] = cmp.mapping.abort(), -- close completion window
-					["<CR>"] = cmp.mapping.confirm({ select = false }),
-				}),
-				sources = cmp.config.sources({
-					{ name = "nvim_lsp" },
-					{ name = "luasnip" },
-					{ name = "buffer" },
-					{ name = "path" },
-				}),
-			})
+			return require("configs.nvim-cmp")
 		end,
 	},
 	{
@@ -148,10 +98,10 @@ return {
 			require("conform").setup(opts)
 		end,
 	},
+
 	{
 		"mfussenegger/nvim-dap",
 		config = function()
-			local dap = require("dap")
 			vim.api.nvim_create_user_command("DapSidebar", function()
 				local widgets = require("dap.ui.widgets")
 				local sidebar = widgets.sidebar(widgets.scopes)
@@ -159,73 +109,68 @@ return {
 			end, {})
 		end,
 	},
+
 	{
 		"mfussenegger/nvim-dap-python",
 		ft = "python",
 		dependencies = {
 			"mfussenegger/nvim-dap",
-			"nvim-neotest/nvim-nio",
 		},
 		config = function()
 			local path = "~/.local/share/nvim/mason/packages/debugpy/venv/bin/python"
 			require("dap-python").setup(path)
-
-			local dap = require("dap")
-			--Adicional
-			dap.adapters.python = {
-				type = "server",
-				host = "127.0.0.1",
-				port = 5678,
-			}
-			--Configuracion adicional
-			dap.configurations.python = {
-				{
-					type = "python",
-					request = "attach",
-					name = "Attach to debugpy in zellij",
-					connect = {
-						port = 5678,
-						host = "127.0.0.1",
-					},
-					mode = "remote",
-					justMyCode = false,
-				},
-			}
 		end,
 	},
+
 	{
 		"rcarriga/nvim-dap-ui",
-		dependencies = { "mfussenegger/nvim-dap" },
+		dependencies = {
+			"mfussenegger/nvim-dap",
+			"nvim-neotest/nvim-nio", -- Asegúrate de agregar esto
+		},
 		config = function()
-			local dap, dapui = require("dap"), require("dapui")
+			require("dapui").setup()
 
-			dapui.setup()
+			-- Comandos adicionales para abrir/cerrar la UI
+			vim.api.nvim_create_user_command("DapUIOpen", function()
+				require("dapui").open()
+			end, {})
 
-			dap.listeners.before.attach.dapui_config = function()
+			vim.api.nvim_create_user_command("DapUIClose", function()
+				require("dapui").close()
+			end, {})
+
+			vim.api.nvim_create_user_command("DapUIReset", function()
+				require("dapui").refresh()
+			end, {})
+
+			-- Conectar DAP UI con eventos de depuración
+			local dap = require("dap")
+			local dapui = require("dapui")
+
+			dap.listeners.after.event_initialized["dapui_config"] = function()
 				dapui.open()
 			end
-			dap.listeners.before.launch.dapui_config = function()
-				dapui.open()
-			end
-			dap.listeners.before.event_terminated.dapui_config = function()
-				dapui.close()
-			end
-			dap.listeners.before.event_exited.dapui_config = function()
-				dapui.close()
-			end
+
+			--dap.listeners.before.event_terminated["dapui_config"] = function()
+			--	dapui.close()
+			--end
+
+			--dap.listeners.before.event_exited["dapui_config"] = function()
+			--	dapui.close()
+			--end
 		end,
 	},
-
 	{
 		"nvim-lualine/lualine.nvim",
-		dependencies = { "nvim-tree/nvim-web-devicons" },
 		opts = function()
 			return require("configs.lualine")
 		end,
-		config = function(_, opts)
+		--[[ config = function(_, opts)
 			require("lualine").setup(opts)
-		end,
+		end, ]]
 	},
+
 	{
 		"goolord/alpha-nvim",
 		dependencies = { "nvim-lua/plenary.nvim" },
@@ -242,7 +187,7 @@ return {
 					char = "|",
 				},
 				scope = {
-					enabled = false,
+					enabled = true,
 				},
 			}
 		end,
@@ -262,5 +207,38 @@ return {
 		config = function()
 			require("nvim-autopairs").setup()
 		end,
+	},
+	--[[ {
+		"folke/tokyonight.nvim",
+		lazy = false,
+		priority = 1000,
+		config = function()
+			vim.cmd.colorscheme("tokyonight-storm")
+		end,
+	}, ]]
+	{
+		"rebelot/kanagawa.nvim",
+		lazy = false,
+		priority = 1000,
+		config = function()
+			vim.cmd("colorscheme kanagawa")
+		end,
+	},
+	{
+		"numToStr/Comment.nvim",
+		config = true,
+	},
+	{
+		"folke/noice.nvim",
+		event = "VeryLazy",
+		opts = {},
+		dependencies = {
+			"MunifTanjim/nui.nvim",
+			"rcarriga/nvim-notify",
+		},
+	},
+	{
+		"mg979/vim-visual-multi",
+		branch = "master",
 	},
 }
