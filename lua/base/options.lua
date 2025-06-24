@@ -1,4 +1,13 @@
 -- Basic settings
+vim.opt.encoding = "utf-8" -- set encoding
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true -- convert tabs to spaces
+vim.opt.autoindent = true -- auto indentation
+vim.opt.swapfile = false -- do not use a swap file for the buffer
+vim.opt.backup = false -- do not keep a backup file
+vim.opt.updatetime = 50
 vim.g.mapleader = " " -- Set <Space> as the leader key
 vim.o.foldmethod = "indent" -- Use indentation to define folds (try "syntax" as an alternative)
 vim.o.foldlevel = 99 -- Open all folds by default
