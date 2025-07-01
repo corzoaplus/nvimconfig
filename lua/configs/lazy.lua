@@ -1,5 +1,9 @@
 return {
 	{
+		"habamax/vim-godot",
+		event = "vimEnter",
+	},
+	{
 		-- Emmet support for HTML, CSS, JSX, etc.
 		"mattn/emmet-vim",
 

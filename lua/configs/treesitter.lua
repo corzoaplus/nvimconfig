@@ -1,11 +1,23 @@
 require("nvim-treesitter.configs").setup({
-	ensure_installed = { "python", "html", "css", "scss", "javascript", "lua", "tsx", "typescript" }, -- puedes agregar más: "lua", "json", etc.
+	ensure_installed = {
+		"gdscript",
+		"godot_resource",
+		"gdshader",
+		"python",
+		"html",
+		"css",
+		"scss",
+		"javascript",
+		"lua",
+		"tsx",
+		"typescript",
+	}, -- puedes agregar más: "lua", "json", etc.
 	highlight = {
 		enable = true, -- Activa el resaltado
 		additional_vim_regex_highlighting = false,
 	},
 	indent = {
-		enable = true, -- Indentación automática basada en sintaxis
+		enable = false, -- Indentación automática basada en sintaxis
 	},
 	incremental_selection = {
 		enable = true,
