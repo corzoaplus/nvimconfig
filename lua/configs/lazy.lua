@@ -1,5 +1,21 @@
 return {
 	{
+		"brianhuster/live-preview.nvim",
+		dependencies = { "nvim-telescope/telescope.nvim" },
+		ft = { "html", "javascriptreact", "typescriptreact", "css", "scss" },
+		config = function()
+			require("livepreview.config").set()
+			-- auto save para previews HTML al salir de modo insert
+			vim.o.autowriteall = true
+			vim.api.nvim_create_autocmd({ "InsertLeavePre", "TextChanged", "TextChangedP" }, {
+				pattern = "*.html",
+				callback = function()
+					vim.cmd("silent! write")
+				end,
+			})
+		end,
+	},
+	{
 		"habamax/vim-godot",
 		event = "vimEnter",
 	},
